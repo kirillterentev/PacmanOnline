@@ -1,0 +1,10 @@
+C:\Users\mowde\source\repos\PacmanServer\Program\bin\Debug\Program.exe.config
+C:\Users\mowde\source\repos\PacmanServer\Program\bin\Debug\Program.exe
+C:\Users\mowde\source\repos\PacmanServer\Program\bin\Debug\Program.pdb
+C:\Users\mowde\source\repos\PacmanServer\Program\bin\Debug\protobuf-net.dll
+C:\Users\mowde\source\repos\PacmanServer\Program\bin\Debug\protobuf-net.xml
+C:\Users\mowde\source\repos\PacmanServer\Program\obj\Debug\Program.csprojAssemblyReference.cache
+C:\Users\mowde\source\repos\PacmanServer\Program\obj\Debug\Program.csproj.CoreCompileInputs.cache
+C:\Users\mowde\source\repos\PacmanServer\Program\obj\Debug\Program.csproj.CopyComplete
+C:\Users\mowde\source\repos\PacmanServer\Program\obj\Debug\Program.exe
+C:\Users\mowde\source\repos\PacmanServer\Program\obj\Debug\Program.pdb
