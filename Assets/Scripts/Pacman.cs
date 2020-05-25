@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using ProtoBuf;
 
 [Serializable]
@@ -45,5 +46,5 @@ public class GameField
 	public Coord Size;
 
 	[ProtoMember(2)]
-	public Coord[] Cells;
+	public List<Coord> Cells;
 }

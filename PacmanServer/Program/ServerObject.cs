@@ -9,7 +9,7 @@ namespace PacmanServer
 {
 	class ServerObject
 	{
-		static TcpListener tcpListener;
+		TcpListener tcpListener;
 		List<ClientObject> clients = new List<ClientObject>();
 
 		protected internal void AddConnection(ClientObject clientObject)
@@ -37,7 +37,7 @@ namespace PacmanServer
 					TcpClient tcpClient = tcpListener.AcceptTcpClient();
 
 					ClientObject clientObject = new ClientObject(tcpClient, this);
-					Thread clientThread = new Thread(new ThreadStart(clientObject.Process));
+					Thread clientThread = new Thread(new ThreadStart(clientObject.Process.Invoke));
 					clientThread.Start();
 				}
 			}
