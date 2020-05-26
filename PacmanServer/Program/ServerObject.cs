@@ -35,7 +35,6 @@ namespace PacmanServer
 				while (true)
 				{
 					TcpClient tcpClient = tcpListener.AcceptTcpClient();
-
 					ClientObject clientObject = new ClientObject(tcpClient, this);
 					Thread clientThread = new Thread(new ThreadStart(clientObject.Process.Invoke));
 					clientThread.Start();

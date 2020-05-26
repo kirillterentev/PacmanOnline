@@ -8,35 +8,29 @@ public class GameController : MonoBehaviour
 	private GameObject highQuad;
 
 	private Client client;
-
-	private PacmanField pacmanField;
-	public PacmanField PacmanField
-	{
-		get
-		{
-			if (pacmanField == null)
-			{
-				pacmanField = new PacmanField();
-			}
-
-			return pacmanField;
-		}
-	}
+	private GameData gameData;
+	private PlayerInfo playerInfo;
 
 	private void Start()
 	{
-		client = new Client(this);
+		gameData = new GameData();
 	}
 
-	private void OnDestroy()
+	public void ConnectToServer(string name, string color)
 	{
-		client.Disconnect();
-		client = null;
+		playerInfo = new PlayerInfo();
+		playerInfo.Nickname = name;
+		playerInfo.Color = color;
+
+		client = new Client(this, playerInfo);
 	}
 
-	public void DrawGameField()
+	public void DrawGameField(GameField gameField)
 	{
-		var field = pacmanField.GetField();
+		gameData.PacmanField.SetFieldProto(gameField);
+		gameData.PacmanField.WriteFromGameField();
+
+		var field = gameData.PacmanField.GetField();
 		var parent = new GameObject("PacmanField").transform;
 
 		for (int j = 0; j < field.GetLength(1); j++)
@@ -50,5 +44,11 @@ public class GameController : MonoBehaviour
 									Quaternion.identity, parent);
 			}
 		}
+	}
+
+	private void OnDestroy()
+	{
+		client.Disconnect();
+		client = null;
 	}
 }

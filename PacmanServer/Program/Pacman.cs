@@ -6,24 +6,13 @@ namespace PacmanServer
 {
 	[Serializable]
 	[ProtoContract]
-	public class Joystick
-	{
-		[ProtoMember(1)]
-		public int axisX;
-
-		[ProtoMember(2)]
-		public int axisY;
-	}
-
-	[Serializable]
-	[ProtoContract]
 	public class PlayerInfo
 	{
 		[ProtoMember(1)]
-		public string Nickname;
+		public string Nickname = "";
 
 		[ProtoMember(2)]
-		public string Color;
+		public string Color = "";
 
 		[ProtoMember(3)]
 		public Coord Coord;
@@ -34,10 +23,10 @@ namespace PacmanServer
 	public class Coord
 	{
 		[ProtoMember(1)]
-		public int X;
+		public int X = 0;
 
 		[ProtoMember(2)]
-		public int Y;
+		public int Y = 0;
 	}
 
 	[Serializable]

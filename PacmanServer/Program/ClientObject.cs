@@ -23,7 +23,31 @@ namespace PacmanServer
 			serverObject.AddConnection(this);
 			Stream = client.GetStream();
 
-			Process = InitMessage;
+			Process = GetPlayerInfo;
+		}
+
+		public void GetPlayerInfo()
+		{
+			while (true)
+			{
+				try
+				{
+					PlayerInfo player;
+					player = Serializer.DeserializeWithLengthPrefix<PlayerInfo>(Stream, PrefixStyle.Fixed32);
+
+					if (player != null)
+					{
+						Console.WriteLine($"Player {player.Nickname} connected!");
+						break;
+					}
+				}
+				catch (Exception e)
+				{
+					Console.WriteLine(e);
+				}
+			}
+
+			InitMessage();
 		}
 
 		public void InitMessage()

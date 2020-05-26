@@ -10,14 +10,26 @@ public class Client
 	private const int port = 8888;
 
 	private TcpClient client;
+	private GameField gameField;
 	private NetworkStream stream;
 	private GameController gameController;
 	private Thread workingThread;
 
-	public Client(GameController controller)
+	public Client(GameController controller, PlayerInfo player)
 	{
 		gameController = controller;
 		Connect();
+
+		try
+		{
+			Serializer.SerializeWithLengthPrefix(stream, player, PrefixStyle.Fixed32);
+		}
+		catch (Exception e)
+		{
+			Console.WriteLine(e);
+			throw;
+		}
+
 		workingThread = new Thread(new ThreadStart(ReceiveGameField));
 		workingThread.Start();
 
@@ -29,7 +41,45 @@ public class Client
 			}
 		}
 
-		gameController.DrawGameField();
+		gameController.DrawGameField(gameField);
+	}
+
+	private void Connect()
+	{
+		try
+		{
+			client = new TcpClient();
+			client.Connect(host, port);
+			stream = client.GetStream();
+		}
+		catch (Exception ex)
+		{
+			Console.WriteLine(ex.Message);
+			throw;
+		}
+	}
+
+	private void ReceiveGameField()
+	{
+		while (true)
+		{
+			try
+			{
+				GameField info;
+				info = Serializer.DeserializeWithLengthPrefix<GameField>(stream, PrefixStyle.Fixed32);
+
+				if (info != null)
+				{
+					gameField = info;
+					break;
+				}
+			}
+			catch (Exception e)
+			{
+				Console.WriteLine(e);
+				throw;
+			}
+		}
 	}
 
 	public void Disconnect()
@@ -47,42 +97,5 @@ public class Client
 		}
 	}
 
-	private void Connect()
-	{
-		try
-		{
-			client = new TcpClient();
-			client.Connect(host, port);
-			stream = client.GetStream();
-		}
-		catch (Exception ex)
-		{
-			Console.WriteLine(ex.Message);
-		}
-	}
-
-	private void ReceiveGameField()
-	{
-		while (true)
-		{
-			try
-			{
-				GameField info;
-				info = Serializer.DeserializeWithLengthPrefix<GameField>(stream, PrefixStyle.Fixed32);
-				
-				if (info != null)
-				{
-					gameController.PacmanField.SetFieldProto(info);
-					gameController.PacmanField.WriteFromGameField();
-
-					break;
-				}
-			}
-			catch (Exception e)
-			{
-				Console.WriteLine(e);
-			}
-		}
-	}
 }
 
