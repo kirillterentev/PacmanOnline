@@ -1,6 +1,6 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Net.Sockets;
+using System.Threading;
 using ProtoBuf;
 
 namespace PacmanServer
@@ -10,10 +10,10 @@ namespace PacmanServer
 		protected internal string Id { get; private set; }
 		protected internal NetworkStream Stream { get; private set; }
 
-		public Action Process;
-
 		TcpClient client;
 		ServerObject server;
+		Thread readThread;
+		PlayerInfo myPlayer;
 
 		public ClientObject(TcpClient tcpClient, ServerObject serverObject)
 		{
@@ -23,45 +23,86 @@ namespace PacmanServer
 			serverObject.AddConnection(this);
 			Stream = client.GetStream();
 
-			Process = GetPlayerInfo;
-		}
-
-		public void GetPlayerInfo()
-		{
-			while (true)
-			{
-				try
-				{
-					PlayerInfo player;
-					player = Serializer.DeserializeWithLengthPrefix<PlayerInfo>(Stream, PrefixStyle.Fixed32);
-
-					if (player != null)
-					{
-						Console.WriteLine($"Player {player.Nickname} connected!");
-						break;
-					}
-				}
-				catch (Exception e)
-				{
-					Console.WriteLine(e);
-				}
-			}
-
-			InitMessage();
+			readThread = new Thread(new ThreadStart(GetMessage));
+			readThread.Start();
 		}
 
 		public void InitMessage()
 		{
-			PacmanField pacmanField = new PacmanField();
-			pacmanField.ReadFieldFromFile();
-			Serializer.SerializeWithLengthPrefix<GameField>(Stream, pacmanField.GetFieldProto(), PrefixStyle.Fixed32);
-			Process = EmptyMethod;
+			//Отправляем игроку игровое поле
+			Header header = new Header();
+			header.type = MessageType.GameField;
+			Serializer.SerializeWithLengthPrefix<Header>(Stream, header, PrefixStyle.Fixed32);
+			Serializer.SerializeWithLengthPrefix<GameField>(Stream, server.mapManager.PacmanField.GetFieldProto(), PrefixStyle.Fixed32);
+
+			//Если в игре кто то уже есть, сообщаем игроку обо всех
+			header.type = MessageType.PlayerInfo;
+			foreach (var player in server.playerDict)
+			{
+				if (player.Key.ID == Id)
+				{
+					continue;
+				}
+
+				Serializer.SerializeWithLengthPrefix<Header>(Stream, header, PrefixStyle.Fixed32);
+				Serializer.SerializeWithLengthPrefix<PlayerInfo>(Stream, player.Key, PrefixStyle.Fixed32);
+			}
 		}
 
-		public void EmptyMethod(){}
+		protected internal void GetMessage()
+		{
+			try
+			{
+				while (true)
+				{
+					var header = Serializer.DeserializeWithLengthPrefix<Header>(Stream, PrefixStyle.Fixed32);
+					if (header == null)
+					{
+						continue;
+					}
+
+					switch (header.type)
+					{
+						case MessageType.PlayerInfo:
+							var player = Serializer.DeserializeWithLengthPrefix<PlayerInfo>(Stream, PrefixStyle.Fixed32);
+							if (player != null)
+							{
+								if (!server.playerDict.ContainsKey(player))
+								{
+									Id = player.ID;
+									server.playerDict.Add(player, server.mapManager.GetFreePoint());
+									myPlayer = player;
+									if (server.playerDict.Count > 1)
+									{
+										server.BroadcastMessage<PlayerInfo>(MessageType.PlayerInfo, player);
+									}
+								}
+							}
+							break;
+
+						case MessageType.Coord:
+							// тут надо передвигать пакмена на общей карте
+							break;
+					}
+				}
+			}
+			catch (Exception e)
+			{
+				Close();
+				throw;
+			}
+		}
 
 		protected internal void Close()
 		{
+			server.RemoveConnection(Id);
+			server.playerDict.Remove(myPlayer);
+
+			if (readThread != null)
+			{
+				readThread.Abort();
+			}
+
 			if (Stream != null)
 			{
 				Stream.Close();
@@ -74,49 +115,3 @@ namespace PacmanServer
 		}
 	}
 }
-	//server.BroadcastMessage(message, this.Id);
-
-	//while (true)
-	//{
-	//	try
-	//	{
-	//		var message = GetMessage();
-	//		server.BroadcastMessage(message, this.Id);
-	//	}
-	//	catch
-	//	{
-	//		break;
-	//	}
-	//}
-
-	//private byte[] GetMessage()
-	//{
-	//byte[] data = new byte[1024];
-	//byte[] output;
-	//int bytes = 0;
-	//	do
-	//{
-	//	bytes = Stream.Read(data, 0, data.Length);
-	//	output = new byte[bytes];
-	//	for (int i = 0; i < bytes; i++)
-	//	{
-	//		output[i] = data[i];
-	//	}
-	//}
-	//while (Stream.DataAvailable);
-
-	//return output;
-	//}
-
-//try
-//{
-//}
-//catch (Exception e)
-//{
-//Console.WriteLine(e.Message);
-//}
-//finally
-//{
-//server.RemoveConnection(this.Id);
-//Close();
-//}

@@ -4,6 +4,33 @@ using ProtoBuf;
 
 namespace PacmanServer
 {
+	public enum MessageType
+	{
+		Coord,
+		PlayerInfo,
+		GameField,
+		MoveInfo
+	}
+
+	[Serializable]
+	[ProtoContract]
+	public class Header
+	{
+		[ProtoMember(1)]
+		public MessageType type;
+	}
+
+	[Serializable]
+	[ProtoContract]
+	public class MoveInfo
+	{
+		[ProtoMember(1)]
+		public string Id = "";
+
+		[ProtoMember(2)]
+		public Coord NewCoord;
+	}
+
 	[Serializable]
 	[ProtoContract]
 	public class PlayerInfo
@@ -15,7 +42,7 @@ namespace PacmanServer
 		public string Color = "";
 
 		[ProtoMember(3)]
-		public Coord Coord;
+		public string ID = "me";
 	}
 
 	[Serializable]

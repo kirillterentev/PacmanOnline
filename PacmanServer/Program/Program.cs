@@ -7,12 +7,14 @@ namespace PacmanServer
 	{
 		static ServerObject server;
 		static Thread listenThread;
+		static Thread gameThread;
 
 		static void Main(string[] args)
 		{
 			try
 			{
 				server = new ServerObject();
+
 				listenThread = new Thread(new ThreadStart(server.Listen));
 				listenThread.Start();
 			}

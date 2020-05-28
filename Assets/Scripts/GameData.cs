@@ -1,4 +1,6 @@
-﻿public class GameData
+﻿using UnityEngine;
+
+public class GameData
 {
 	private PacmanField pacmanField;
 	public PacmanField PacmanField
@@ -14,5 +16,6 @@
 		}
 	}
 
-
+	public PlayerInfo MyPlayer;
+	public Transform MyPlayerTransform;
 }
