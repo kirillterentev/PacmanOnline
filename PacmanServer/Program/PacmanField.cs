@@ -11,7 +11,7 @@ namespace PacmanServer
 
         public void ReadFieldFromFile()
         {
-            string[] lines = File.ReadAllLines(@"C:\Users\mowde\source\repos\ChatServer\ClientObject\pacman_field.txt");
+            string[] lines = File.ReadAllLines(@"D:\repo\PacmanOnline\PacmanServer\Program\pacman_field.txt");
             int coordX = 0;
             int coordY = 0;
 

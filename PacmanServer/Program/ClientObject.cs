@@ -9,10 +9,11 @@ namespace PacmanServer
 	{
 		protected internal string Id { get; private set; }
 		protected internal NetworkStream Stream { get; private set; }
+		protected internal Coord LastInput;
+		protected internal Thread readThread;
 
 		TcpClient client;
 		ServerObject server;
-		Thread readThread;
 		PlayerInfo myPlayer;
 
 		public ClientObject(TcpClient tcpClient, ServerObject serverObject)
@@ -34,7 +35,7 @@ namespace PacmanServer
 			header.type = MessageType.GameField;
 			Serializer.SerializeWithLengthPrefix<Header>(Stream, header, PrefixStyle.Fixed32);
 			Serializer.SerializeWithLengthPrefix<GameField>(Stream, server.mapManager.PacmanField.GetFieldProto(), PrefixStyle.Fixed32);
-
+			Console.WriteLine("Send map");
 			//Если в игре кто то уже есть, сообщаем игроку обо всех
 			header.type = MessageType.PlayerInfo;
 			foreach (var player in server.playerDict)
@@ -81,13 +82,19 @@ namespace PacmanServer
 							break;
 
 						case MessageType.Coord:
-							// тут надо передвигать пакмена на общей карте
+							var coord = Serializer.DeserializeWithLengthPrefix<Coord>(Stream, PrefixStyle.Fixed32);
+							if (coord != null)
+							{
+								LastInput = coord;
+							}
 							break;
 					}
 				}
 			}
 			catch (Exception e)
 			{
+				Console.WriteLine(e);
+				Console.ReadLine();
 				Close();
 				throw;
 			}
@@ -96,7 +103,8 @@ namespace PacmanServer
 		protected internal void Close()
 		{
 			server.RemoveConnection(Id);
-			server.playerDict.Remove(myPlayer);
+			if(myPlayer != null)
+				server.playerDict.Remove(myPlayer);
 
 			if (readThread != null)
 			{

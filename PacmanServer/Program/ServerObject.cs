@@ -10,7 +10,7 @@ namespace PacmanServer
 {
 	class ServerObject
 	{
-		const int UpdatePeriod = 300;
+		const int UpdatePeriod = 500;
 
 		protected internal Dictionary<PlayerInfo, Coord> playerDict = new Dictionary<PlayerInfo, Coord>();
 		protected internal MapManager mapManager;
@@ -60,10 +60,21 @@ namespace PacmanServer
 
 			try
 			{
+				foreach (var client in clients)
+				{
+					if (client.LastInput == null)
+					{
+						continue;
+					}
+
+					MovePlayer(client.Id, client.LastInput);
+					client.LastInput = null;
+				}
+
 				MoveInfo info = new MoveInfo();
 				foreach (var player in playerDict)
 				{
-					Console.WriteLine($"{player.Key.Nickname} : {player.Value.X};{player.Value.Y}");
+					Console.WriteLine($"Here {player.Value.X};{player.Value.Y}");
 					info.Id = player.Key.ID;
 					info.NewCoord = player.Value;
 					BroadcastMessage(MessageType.MoveInfo, info);
@@ -73,6 +84,13 @@ namespace PacmanServer
 			{
 
 			}
+		}
+
+		protected internal void MovePlayer(string id, Coord dir)
+		{
+			var playerDictItem = playerDict.First(player => player.Key.ID == id).Key;
+			var newPos = mapManager.CalculateNextPos(playerDict[playerDictItem], dir);
+			playerDict[playerDictItem] = newPos;
 		}
 
 		protected internal void BroadcastMessage<T>(MessageType type ,T message)

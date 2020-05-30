@@ -27,11 +27,11 @@ namespace PacmanServer
 
 		public Coord GetFreePoint()
 		{
-			var field = pacmanField.GetField();
+			var field = PacmanField.GetField();
 			int xSize = field.GetLength(0);
 			int ySize = field.GetLength(1);
 
-			bool cellIsClose = false;
+			bool cellIsClose = true;
 			Coord coord = new Coord();
 			Random rnd = new Random();
 			do
@@ -43,7 +43,31 @@ namespace PacmanServer
 
 			} while (!cellIsClose);
 
+			coord.X--;
+			coord.Y--;
 			return coord;
+		}
+
+		public Coord CalculateNextPos(Coord startPos, Coord dir)
+		{
+			Coord coord = new Coord();
+			var field = pacmanField.GetField();
+
+			if (dir.Y != 0 && !field[startPos.X, startPos.Y + dir.Y])
+			{
+				coord.X = startPos.X;
+				coord.Y = startPos.Y + dir.Y;
+				return coord;
+			}
+
+			if (dir.X != 0 && !field[startPos.X + dir.X, startPos.Y])
+			{
+				coord.X = startPos.X + dir.X;
+				coord.Y = startPos.Y;
+				return coord;
+			}
+
+			return startPos;
 		}
 	}
 }

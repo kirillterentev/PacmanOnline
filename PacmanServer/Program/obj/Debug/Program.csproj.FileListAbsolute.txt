@@ -13,8 +13,8 @@ D:\repo\PacmanOnline\PacmanServer\Program\bin\Debug\Program.exe
 D:\repo\PacmanOnline\PacmanServer\Program\bin\Debug\Program.pdb
 D:\repo\PacmanOnline\PacmanServer\Program\bin\Debug\protobuf-net.dll
 D:\repo\PacmanOnline\PacmanServer\Program\bin\Debug\protobuf-net.xml
-D:\repo\PacmanOnline\PacmanServer\Program\obj\Debug\Program.csprojAssemblyReference.cache
 D:\repo\PacmanOnline\PacmanServer\Program\obj\Debug\Program.csproj.CoreCompileInputs.cache
 D:\repo\PacmanOnline\PacmanServer\Program\obj\Debug\Program.csproj.CopyComplete
 D:\repo\PacmanOnline\PacmanServer\Program\obj\Debug\Program.exe
 D:\repo\PacmanOnline\PacmanServer\Program\obj\Debug\Program.pdb
+D:\repo\PacmanOnline\PacmanServer\Program\obj\Debug\Program.csprojAssemblyReference.cache

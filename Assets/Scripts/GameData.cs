@@ -17,5 +17,4 @@ public class GameData
 	}
 
 	public PlayerInfo MyPlayer;
-	public Transform MyPlayerTransform;
 }

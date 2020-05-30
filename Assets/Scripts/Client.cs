@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using ProtoBuf;
@@ -10,15 +11,19 @@ public class Client
 	private const int port = 8888;
 
 	private TcpClient client;
-	private NetworkStream stream;
 	private GameController gameController;
 	private Thread readThread;
+
+	protected internal NetworkStream stream;
+	protected internal bool isConnected = false;
 
 	public Client(GameController controller, PlayerInfo player)
 	{
 		gameController = controller;
+	
 		Connect();
 
+		controller.CreateMyPlayer();
 		try
 		{
 			var header = new Header();
@@ -34,6 +39,8 @@ public class Client
 
 		readThread = new Thread(new ThreadStart(GetMessage));
 		readThread.Start();
+
+		isConnected = true;
 	}
 
 	private void Connect()
@@ -74,8 +81,7 @@ public class Client
 						var player = Serializer.DeserializeWithLengthPrefix<PlayerInfo>(stream, PrefixStyle.Fixed32);
 						if (player != null)
 						{
-							if(!gameController.playersList.Contains(player))
-							gameController.playersList.Add(player);
+							gameController.AddPlayer(player);
 						}
 						break;
 
@@ -83,10 +89,7 @@ public class Client
 						var moveInfo = Serializer.DeserializeWithLengthPrefix<MoveInfo>(stream, PrefixStyle.Fixed32);
 						if (moveInfo != null)
 						{
-							if (moveInfo.Id == gameController.GetMyPlayer().ID)
-							{
-								gameController.SetMyPlayerPosition(moveInfo.NewCoord);
-							}
+							gameController.SetPlayerPosition(moveInfo.Id, moveInfo.NewCoord, true);
 						}
 						break;
 				}
