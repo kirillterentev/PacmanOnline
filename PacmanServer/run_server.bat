@@ -1,2 +1,2 @@
 @echo off
-start .\Program\bin\Debug\Program.exe
+start .\Program\bin\Release\Program.exe

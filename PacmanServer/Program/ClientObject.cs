@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Net.Mime;
 using System.Net.Sockets;
-using System.Threading;
 using ProtoBuf;
 
 namespace PacmanServer
@@ -11,33 +9,31 @@ namespace PacmanServer
 		protected internal string Id { get; private set; }
 		protected internal NetworkStream Stream { get; private set; }
 		protected internal Coord LastInput;
-		protected internal Thread readThread;
 
-		TcpClient client;
-		ServerObject server;
-		PlayerInfo myPlayer;
+		private TcpClient client;
+		private ServerObject server;
 
 		public ClientObject(TcpClient tcpClient, ServerObject serverObject)
 		{
-			Id = Guid.NewGuid().ToString();
 			client = tcpClient;
 			server = serverObject;
 			serverObject.AddConnection(this);
 			Stream = client.GetStream();
 		}
 
-		public void InitMessage()
+		protected internal void InitClient()
 		{
-			//Отправляем игроку игровое поле
 			Header header = new Header();
-			header.type = MessageType.GameField;
+			header.Type = MessageType.GameField;
 			Serializer.SerializeWithLengthPrefix<Header>(Stream, header, PrefixStyle.Fixed32);
 			Serializer.SerializeWithLengthPrefix<GameField>(Stream, server.mapManager.PacmanField.GetFieldProto(), PrefixStyle.Fixed32);
-			//Если в игре кто то уже есть, сообщаем игроку обо всех
-			header.type = MessageType.PlayerInfo;
+		
+			header = new Header();
+			header.Type = MessageType.PlayerInfo;
+
 			foreach (var player in server.playerDict)
 			{
-				if (player.Key.ID == Id)
+				if (player.Key.Id == Id)
 				{
 					continue;
 				}
@@ -46,12 +42,10 @@ namespace PacmanServer
 				Serializer.SerializeWithLengthPrefix<PlayerInfo>(Stream, player.Key, PrefixStyle.Fixed32);
 			}
 
-			
-
-			GetMessage();
+			GetMessageStream();
 		}
 
-		protected internal void GetMessage()
+		protected internal void GetMessageStream()
 		{
 			try
 			{
@@ -68,34 +62,34 @@ namespace PacmanServer
 						continue;
 					}
 
-					switch (header.type)
+					switch (header.Type)
 					{
 						case MessageType.PlayerInfo:
 							var player = Serializer.DeserializeWithLengthPrefix<PlayerInfo>(Stream, PrefixStyle.Fixed32);
 							if (player != null)
 							{
-								if (!server.playerDict.ContainsKey(player))
+								if (player.Status == Status.Disconnected)
 								{
-									if (player.Status == Status.Disconnected)
+									server.playerDict.Remove(player);
+
+									if (server.playerDict.Count > 0)
 									{
-										server.playerDict.Remove(player);
-										if (server.playerDict.Count > 0)
-										{
-											server.BroadcastMessage<PlayerInfo>(MessageType.PlayerInfo, player);
-										}
-										Close();
-										return;
+										server.BroadcastMessage<PlayerInfo>(MessageType.PlayerInfo, player);
 									}
 
-									if (player.Status == Status.Connected)
+									Close();
+									return;
+								}
+
+								if (player.Status == Status.Connected)
+								{
+									Id = player.Id;
+									server.playerDict.Add(player, server.mapManager.GetFreePoint());
+									Console.WriteLine($"Player {player.Nickname} connected!");
+
+									if (server.playerDict.Count > 1)
 									{
-										Id = player.ID;
-										server.playerDict.Add(player, server.mapManager.GetFreePoint());
-										myPlayer = player;
-										if (server.playerDict.Count > 1)
-										{
-											server.BroadcastMessage<PlayerInfo>(MessageType.PlayerInfo, player);
-										}
+										server.BroadcastMessage<PlayerInfo>(MessageType.PlayerInfo, player);
 									}
 								}
 							}
@@ -103,6 +97,7 @@ namespace PacmanServer
 
 						case MessageType.Coord:
 							var coord = Serializer.DeserializeWithLengthPrefix<Coord>(Stream, PrefixStyle.Fixed32);
+
 							if (coord != null)
 							{
 								LastInput = coord;
@@ -113,6 +108,7 @@ namespace PacmanServer
 			}
 			catch (Exception e)
 			{
+				Console.WriteLine(e);
 				Close();
 			}
 		}
@@ -122,8 +118,7 @@ namespace PacmanServer
 			try
 			{
 				Header header = new Header();
-				header.type = type;
-
+				header.Type = type;
 				Serializer.SerializeWithLengthPrefix(Stream, header, PrefixStyle.Fixed32);
 				Serializer.SerializeWithLengthPrefix(Stream, message, PrefixStyle.Fixed32);
 			}
@@ -143,16 +138,6 @@ namespace PacmanServer
 			if (server != null)
 			{
 				server.RemoveConnection(Id);
-			}
-
-			if (myPlayer != null)
-			{
-				server.playerDict.Remove(myPlayer);
-			}
-
-			if (readThread != null)
-			{
-				readThread.Abort();
 			}
 
 			if (client != null)

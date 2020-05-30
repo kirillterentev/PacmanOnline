@@ -17,4 +17,3 @@ D:\repo\PacmanOnline\PacmanServer\Program\obj\Debug\Program.csproj.CoreCompileIn
 D:\repo\PacmanOnline\PacmanServer\Program\obj\Debug\Program.csproj.CopyComplete
 D:\repo\PacmanOnline\PacmanServer\Program\obj\Debug\Program.exe
 D:\repo\PacmanOnline\PacmanServer\Program\obj\Debug\Program.pdb
-D:\repo\PacmanOnline\PacmanServer\Program\obj\Debug\Program.csprojAssemblyReference.cache

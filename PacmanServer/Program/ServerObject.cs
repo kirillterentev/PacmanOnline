@@ -4,57 +4,58 @@ using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
-using ProtoBuf;
 
 namespace PacmanServer
 {
 	class ServerObject
 	{
-		const int UpdatePeriod = 500;
+		private const int UpdatePeriod = 500;
+		private const int MaxConnectionCount = 4;
 
-		protected internal Dictionary<PlayerInfo, Coord> playerDict = new Dictionary<PlayerInfo, Coord>();
+		protected internal Dictionary<PlayerInfo, Coord> playerDict;
 		protected internal MapManager mapManager;
 
-		TcpListener tcpListener;
-		List<ClientObject> clients = new List<ClientObject>();
+		private TcpListener tcpListener;
+		private List<ClientObject> clients;
+		private Timer timer;
 
-		protected internal void AddConnection(ClientObject clientObject)
+		protected internal void InitServer()
 		{
-			clients.Add(clientObject);
+			mapManager = new MapManager();
+			playerDict = new Dictionary<PlayerInfo, Coord>();
+			clients = new List<ClientObject>();
 		}
 
 		protected internal void Listen()
 		{
-			mapManager = new MapManager(this);
-
 			try
 			{
 				tcpListener = new TcpListener(IPAddress.Any, 8888);
 				tcpListener.Start();
-				Console.WriteLine("Сервер запущен. Ожидание подключений...");
 
-				TimerCallback timerCallback = new TimerCallback(GameCicle);
-				Timer timer = new Timer(timerCallback, null, 0, UpdatePeriod);
+				Console.WriteLine("Сервер запущен");
 
-				while (clients.Count < 4)
+				timer = new Timer(new TimerCallback(GameCicle), null, 0, UpdatePeriod);
+
+				while (clients.Count < MaxConnectionCount)
 				{
 					TcpClient tcpClient = tcpListener.AcceptTcpClient();
+
 					if (tcpClient != null)
 					{
 						ClientObject clientObject = new ClientObject(tcpClient, this);
-						Thread clientThread = new Thread(new ThreadStart(clientObject.InitMessage));
+						Thread clientThread = new Thread(new ThreadStart(clientObject.InitClient));
 						clientThread.Start();
 					}
 				}
 			}
-			catch (Exception ex)
+			catch (Exception e)
 			{
-				Console.WriteLine(ex.Message);
 				Disconnect();
 			}
 		}
 
-		protected internal void GameCicle(object arg)
+		protected internal void GameCicle(object args)
 		{
 			if (playerDict.Count < 1)
 			{
@@ -74,11 +75,13 @@ namespace PacmanServer
 					client.LastInput = null;
 				}
 
-				MoveInfo info = new MoveInfo();
+				MoveInfo info;
 				foreach (var player in playerDict)
 				{
-					info.Id = player.Key.ID;
+					info = new MoveInfo();
+					info.Id = player.Key.Id;
 					info.NewCoord = player.Value;
+
 					BroadcastMessage(MessageType.MoveInfo, info);
 				}
 			}
@@ -90,7 +93,7 @@ namespace PacmanServer
 
 		protected internal void MovePlayer(string id, Coord dir)
 		{
-			var playerDictItem = playerDict.First(player => player.Key.ID == id).Key;
+			var playerDictItem = playerDict.First(player => player.Key.Id == id).Key;
 			var newPos = mapManager.CalculateNextPos(playerDict[playerDictItem], dir);
 			playerDict[playerDictItem] = newPos;
 		}
@@ -109,16 +112,24 @@ namespace PacmanServer
 			}
 		}
 
+		protected internal void AddConnection(ClientObject clientObject)
+		{
+			clients.Add(clientObject);
+		}
+
 		protected internal void RemoveConnection(string id)
 		{
 			ClientObject client = clients.FirstOrDefault(c => c.Id == id);
 			if (client != null)
+			{
 				clients.Remove(client);
+			}
 		}
 
 		protected internal void Disconnect()
 		{
-			tcpListener.Stop(); 
+			timer?.Dispose();
+			tcpListener?.Stop(); 
 
 			for (int i = 0; i < clients.Count; i++)
 			{

@@ -5,23 +5,22 @@ namespace PacmanServer
 {
 	class Program
 	{
-		static ServerObject server;
-		static Thread listenThread;
-		static Thread gameThread;
+		private static ServerObject server;
+		private static Thread listenThread;
 
 		static void Main(string[] args)
 		{
 			try
 			{
 				server = new ServerObject();
+				server.InitServer();
 
 				listenThread = new Thread(new ThreadStart(server.Listen));
 				listenThread.Start();
 			}
-			catch (Exception ex)
+			catch (Exception e)
 			{
 				server.Disconnect();
-				Console.WriteLine(ex.Message);
 			}
 		}
 	}

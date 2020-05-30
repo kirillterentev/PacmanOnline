@@ -23,7 +23,7 @@ namespace PacmanServer
 	public class Header
 	{
 		[ProtoMember(1)]
-		public MessageType type;
+		public MessageType Type;
 	}
 
 	[Serializable]
@@ -31,7 +31,7 @@ namespace PacmanServer
 	public class MoveInfo
 	{
 		[ProtoMember(1)]
-		public string Id = "";
+		public string Id;
 
 		[ProtoMember(2)]
 		public Coord NewCoord;
@@ -42,13 +42,13 @@ namespace PacmanServer
 	public class PlayerInfo
 	{
 		[ProtoMember(1)]
-		public string Nickname = "";
+		public string Nickname;
 
 		[ProtoMember(2)]
-		public string Color = "";
+		public string Color;
 
 		[ProtoMember(3)]
-		public string ID = "me";
+		public string Id;
 
 		[ProtoMember(4)]
 		public Status Status;
@@ -75,6 +75,5 @@ namespace PacmanServer
 		[ProtoMember(2)]
 		public List<Coord> Cells;
 	}
-
 }
 
