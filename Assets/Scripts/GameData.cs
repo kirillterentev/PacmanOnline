@@ -1,6 +1,4 @@
-﻿using UnityEngine;
-
-public class GameData
+﻿public class GameData
 {
 	private PacmanField pacmanField;
 	public PacmanField PacmanField

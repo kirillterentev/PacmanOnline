@@ -10,6 +10,12 @@ public enum MessageType
 	MoveInfo
 }
 
+public enum Status
+{
+	Connected,
+	Disconnected
+}
+
 [Serializable]
 [ProtoContract]
 public class Header
@@ -41,6 +47,9 @@ public class PlayerInfo
 
 	[ProtoMember(3)]
 	public string ID = "me";
+
+	[ProtoMember(4)]
+	public Status Status;
 }
 
 [Serializable]

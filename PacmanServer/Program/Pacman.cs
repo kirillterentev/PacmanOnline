@@ -12,6 +12,12 @@ namespace PacmanServer
 		MoveInfo
 	}
 
+	public enum Status
+	{
+		Connected,
+		Disconnected
+	}
+
 	[Serializable]
 	[ProtoContract]
 	public class Header
@@ -43,6 +49,9 @@ namespace PacmanServer
 
 		[ProtoMember(3)]
 		public string ID = "me";
+
+		[ProtoMember(4)]
+		public Status Status;
 	}
 
 	[Serializable]

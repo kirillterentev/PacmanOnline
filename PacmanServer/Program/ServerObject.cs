@@ -39,9 +39,12 @@ namespace PacmanServer
 				while (clients.Count < 4)
 				{
 					TcpClient tcpClient = tcpListener.AcceptTcpClient();
-					ClientObject clientObject = new ClientObject(tcpClient, this);
-					Thread clientThread = new Thread(new ThreadStart(clientObject.InitMessage));
-					clientThread.Start();
+					if (tcpClient != null)
+					{
+						ClientObject clientObject = new ClientObject(tcpClient, this);
+						Thread clientThread = new Thread(new ThreadStart(clientObject.InitMessage));
+						clientThread.Start();
+					}
 				}
 			}
 			catch (Exception ex)
@@ -74,7 +77,6 @@ namespace PacmanServer
 				MoveInfo info = new MoveInfo();
 				foreach (var player in playerDict)
 				{
-					Console.WriteLine($"Here {player.Value.X};{player.Value.Y}");
 					info.Id = player.Key.ID;
 					info.NewCoord = player.Value;
 					BroadcastMessage(MessageType.MoveInfo, info);
@@ -82,7 +84,7 @@ namespace PacmanServer
 			}
 			catch (Exception e)
 			{
-
+				Console.WriteLine(e);
 			}
 		}
 
@@ -95,13 +97,15 @@ namespace PacmanServer
 
 		protected internal void BroadcastMessage<T>(MessageType type ,T message)
 		{
-			Header header = new Header();
-			header.type = type;
-
-			for (int i = 0; i < clients.Count; i++)
+			try
 			{
-				Serializer.SerializeWithLengthPrefix(clients[i].Stream, header, PrefixStyle.Fixed32);
-				Serializer.SerializeWithLengthPrefix(clients[i].Stream, message, PrefixStyle.Fixed32);
+				for (int i = 0; i < clients.Count; i++)
+				{
+					clients[i].WriteMessage(type, message);
+				}
+			}
+			catch (Exception e)
+			{
 			}
 		}
 

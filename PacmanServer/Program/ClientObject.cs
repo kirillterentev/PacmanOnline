@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net.Mime;
 using System.Net.Sockets;
 using System.Threading;
 using ProtoBuf;
@@ -23,9 +24,6 @@ namespace PacmanServer
 			server = serverObject;
 			serverObject.AddConnection(this);
 			Stream = client.GetStream();
-
-			readThread = new Thread(new ThreadStart(GetMessage));
-			readThread.Start();
 		}
 
 		public void InitMessage()
@@ -35,7 +33,6 @@ namespace PacmanServer
 			header.type = MessageType.GameField;
 			Serializer.SerializeWithLengthPrefix<Header>(Stream, header, PrefixStyle.Fixed32);
 			Serializer.SerializeWithLengthPrefix<GameField>(Stream, server.mapManager.PacmanField.GetFieldProto(), PrefixStyle.Fixed32);
-			Console.WriteLine("Send map");
 			//Если в игре кто то уже есть, сообщаем игроку обо всех
 			header.type = MessageType.PlayerInfo;
 			foreach (var player in server.playerDict)
@@ -48,6 +45,10 @@ namespace PacmanServer
 				Serializer.SerializeWithLengthPrefix<Header>(Stream, header, PrefixStyle.Fixed32);
 				Serializer.SerializeWithLengthPrefix<PlayerInfo>(Stream, player.Key, PrefixStyle.Fixed32);
 			}
+
+			
+
+			GetMessage();
 		}
 
 		protected internal void GetMessage()
@@ -56,6 +57,11 @@ namespace PacmanServer
 			{
 				while (true)
 				{
+					if (!client.Connected || client.Available == 0)
+					{
+						continue;
+					}
+
 					var header = Serializer.DeserializeWithLengthPrefix<Header>(Stream, PrefixStyle.Fixed32);
 					if (header == null)
 					{
@@ -70,12 +76,26 @@ namespace PacmanServer
 							{
 								if (!server.playerDict.ContainsKey(player))
 								{
-									Id = player.ID;
-									server.playerDict.Add(player, server.mapManager.GetFreePoint());
-									myPlayer = player;
-									if (server.playerDict.Count > 1)
+									if (player.Status == Status.Disconnected)
 									{
-										server.BroadcastMessage<PlayerInfo>(MessageType.PlayerInfo, player);
+										server.playerDict.Remove(player);
+										if (server.playerDict.Count > 0)
+										{
+											server.BroadcastMessage<PlayerInfo>(MessageType.PlayerInfo, player);
+										}
+										Close();
+										return;
+									}
+
+									if (player.Status == Status.Connected)
+									{
+										Id = player.ID;
+										server.playerDict.Add(player, server.mapManager.GetFreePoint());
+										myPlayer = player;
+										if (server.playerDict.Count > 1)
+										{
+											server.BroadcastMessage<PlayerInfo>(MessageType.PlayerInfo, player);
+										}
 									}
 								}
 							}
@@ -93,27 +113,46 @@ namespace PacmanServer
 			}
 			catch (Exception e)
 			{
-				Console.WriteLine(e);
-				Console.ReadLine();
 				Close();
-				throw;
+			}
+		}
+
+		protected internal void WriteMessage<T>(MessageType type, T message)
+		{
+			try
+			{
+				Header header = new Header();
+				header.type = type;
+
+				Serializer.SerializeWithLengthPrefix(Stream, header, PrefixStyle.Fixed32);
+				Serializer.SerializeWithLengthPrefix(Stream, message, PrefixStyle.Fixed32);
+			}
+			catch (Exception e)
+			{
+				Close();
 			}
 		}
 
 		protected internal void Close()
 		{
-			server.RemoveConnection(Id);
-			if(myPlayer != null)
+			if (Stream != null)
+			{
+				Stream.Close();
+			}
+
+			if (server != null)
+			{
+				server.RemoveConnection(Id);
+			}
+
+			if (myPlayer != null)
+			{
 				server.playerDict.Remove(myPlayer);
+			}
 
 			if (readThread != null)
 			{
 				readThread.Abort();
-			}
-
-			if (Stream != null)
-			{
-				Stream.Close();
 			}
 
 			if (client != null)

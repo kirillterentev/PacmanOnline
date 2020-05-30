@@ -40,11 +40,8 @@ namespace PacmanServer
 				coord.Y = rnd.Next(0, ySize);
 				cellIsClose = field[coord.X, coord.Y];
 
+			} while (cellIsClose);
 
-			} while (!cellIsClose);
-
-			coord.X--;
-			coord.Y--;
 			return coord;
 		}
 

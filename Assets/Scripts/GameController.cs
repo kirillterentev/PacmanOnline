@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Net.Sockets;
-using System.Threading.Tasks;
+using System.Linq;
 using ProtoBuf;
 using UnityEngine;
 
@@ -31,6 +30,7 @@ public class GameController : MonoBehaviour
 		playerInfo.Nickname = name;
 		playerInfo.Color = color;
 		playerInfo.ID = Guid.NewGuid().ToString();
+		playerInfo.Status = Status.Connected;
 
 		client = new Client(this, playerInfo);
 
@@ -89,7 +89,7 @@ public class GameController : MonoBehaviour
 			return;
 		}
 
-		if (playerDict.ContainsKey(player))
+		if (playerDict.Keys.FirstOrDefault(item => item.ID == player.ID) != null)
 		{
 			return;
 		}
@@ -109,6 +109,21 @@ public class GameController : MonoBehaviour
 		playerObj.GetComponent<Renderer>().material.color = color;
 		this.playerObj.Add(player.ID, playerObj.transform);
 		this.playerObj[player.ID].position = new Vector3(0, -10, 0);
+	}
+
+	public void RemovePlayer(PlayerInfo player, bool fromOuterThread = false)
+	{
+		if (fromOuterThread)
+		{
+			queueTask.Enqueue(() => RemovePlayer(player));
+			return;
+		}
+
+		if (playerDict.Keys.FirstOrDefault(item => item.ID == player.ID) == null)
+		{
+			return;
+		}
+		Destroy(playerObj[player.ID].gameObject);
 	}
 
 	public void CreateMyPlayer()

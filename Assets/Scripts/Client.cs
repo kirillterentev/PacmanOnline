@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
-using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using ProtoBuf;
@@ -81,7 +79,20 @@ public class Client
 						var player = Serializer.DeserializeWithLengthPrefix<PlayerInfo>(stream, PrefixStyle.Fixed32);
 						if (player != null)
 						{
-							gameController.AddPlayer(player);
+							if (player.ID == gameController.GetMyPlayer().ID)
+							{
+								break;
+							}
+
+							if (player.Status == Status.Disconnected)
+							{
+								gameController.RemovePlayer(player, true);
+							}
+
+							if (player.Status == Status.Connected)
+							{
+								gameController.AddPlayer(player, true);
+							}
 						}
 						break;
 
@@ -104,14 +115,21 @@ public class Client
 
 	public void Disconnect()
 	{
+		if (stream != null)
+		{
+			var header = new Header();
+			var player = gameController.GetMyPlayer();
+			player.Status = Status.Disconnected;
+			header.type = MessageType.PlayerInfo;
+			Serializer.SerializeWithLengthPrefix(stream, header, PrefixStyle.Fixed32);
+			Serializer.SerializeWithLengthPrefix(stream, player, PrefixStyle.Fixed32);
+
+			stream.Close();
+		}
+
 		if (readThread != null)
 		{
 			readThread.Abort();
-		}
-
-		if (stream != null)
-		{
-			stream.Close();
 		}
 
 		if (client != null)
