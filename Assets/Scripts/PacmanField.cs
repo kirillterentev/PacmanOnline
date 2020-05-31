@@ -1,25 +1,28 @@
-﻿public class PacmanField
+﻿namespace ClientPacman
 {
-	private bool[,] field;
-	private GameField fieldProto;
-
-	public void WriteFromGameField()
+	public class PacmanField
 	{
-		field = new bool[fieldProto.Size.X, fieldProto.Size.Y];
+		private bool[,] field;
+		private GameField fieldProto;
 
-		foreach (var cell in fieldProto.Cells)
+		public void WriteFromGameField()
 		{
-			field[cell.X, cell.Y] = true;
+			field = new bool[fieldProto.Size.X, fieldProto.Size.Y];
+
+			foreach (var cell in fieldProto.Cells)
+			{
+				field[cell.X, cell.Y] = true;
+			}
 		}
-	}
 
-	public bool[,] GetField()
-	{
-		return field;
-	}
+		public bool[,] GetField()
+		{
+			return field;
+		}
 
-	public void SetFieldProto(GameField gameField)
-	{
-		fieldProto = gameField;
+		public void SetFieldProto(GameField gameField)
+		{
+			fieldProto = gameField;
+		}
 	}
 }

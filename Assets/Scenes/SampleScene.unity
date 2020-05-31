@@ -1853,7 +1853,7 @@ MonoBehaviour:
           m_StringArgument: Black
           m_BoolArgument: 0
         m_CallState: 2
-  m_IsOn: 1
+  m_IsOn: 0
 --- !u!1 &1705192092
 GameObject:
   m_ObjectHideFlags: 0

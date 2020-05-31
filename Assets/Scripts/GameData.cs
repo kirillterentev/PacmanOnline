@@ -1,18 +1,20 @@
-﻿public class GameData
+﻿namespace ClientPacman
 {
-	private PacmanField pacmanField;
-	public PacmanField PacmanField
+	public class GameData
 	{
-		get
+		private PacmanField pacmanField;
+		public PacmanField PacmanField
 		{
-			if (pacmanField == null)
+			get
 			{
-				pacmanField = new PacmanField();
-			}
+				if (pacmanField == null)
+				{
+					pacmanField = new PacmanField();
+				}
 
-			return pacmanField;
+				return pacmanField;
+			}
 		}
 	}
-
-	public PlayerInfo MyPlayer;
 }
+

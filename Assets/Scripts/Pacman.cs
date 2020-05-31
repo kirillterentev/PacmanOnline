@@ -2,74 +2,66 @@
 using System.Collections.Generic;
 using ProtoBuf;
 
-public enum MessageType
+namespace ClientPacman
 {
-	Coord,
-	PlayerInfo,
-	GameField,
-	MoveInfo
-}
+	public enum MessageType
+	{
+		Coord,
+		PlayerInfo,
+		GameField,
+		MoveInfo
+	}
 
-public enum Status
-{
-	Connected,
-	Disconnected
-}
+	public enum Status
+	{
+		Connected,
+		Disconnected
+	}
 
-[Serializable]
-[ProtoContract]
-public class Header
-{
-	[ProtoMember(1)]
-	public MessageType type;
-}
+	[Serializable]
+	[ProtoContract]
+	public class Header
+	{
+		[ProtoMember(1)] public MessageType type;
+	}
 
-[Serializable]
-[ProtoContract]
-public class MoveInfo
-{
-	[ProtoMember(1)]
-	public string Id = "";
+	[Serializable]
+	[ProtoContract]
+	public class MoveInfo
+	{
+		[ProtoMember(1)] public string Id;
 
-	[ProtoMember(2)]
-	public Coord NewCoord;
-}
+		[ProtoMember(2)] public Coord NewCoord;
+	}
 
-[Serializable]
-[ProtoContract]
-public class PlayerInfo
-{
-	[ProtoMember(1)]
-	public string Nickname = "";
+	[Serializable]
+	[ProtoContract]
+	public class PlayerInfo
+	{
+		[ProtoMember(1)] public string Nickname;
 
-	[ProtoMember(2)]
-	public string Color = "";
+		[ProtoMember(2)] public string Color;
 
-	[ProtoMember(3)]
-	public string ID = "me";
+		[ProtoMember(3)] public string ID;
 
-	[ProtoMember(4)]
-	public Status Status;
-}
+		[ProtoMember(4)] public Status Status;
+	}
 
-[Serializable]
-[ProtoContract]
-public class Coord
-{
-	[ProtoMember(1)]
-	public int X = 0;
+	[Serializable]
+	[ProtoContract]
+	public class Coord
+	{
+		[ProtoMember(1)] public int X;
 
-	[ProtoMember(2)]
-	public int Y = 0;
-}
+		[ProtoMember(2)] public int Y;
+	}
 
-[Serializable]
-[ProtoContract]
-public class GameField
-{
-	[ProtoMember(1)]
-	public Coord Size;
+	[Serializable]
+	[ProtoContract]
+	public class GameField
+	{
+		[ProtoMember(1)] public Coord Size;
 
-	[ProtoMember(2)]
-	public List<Coord> Cells;
+		[ProtoMember(2)] public List<Coord> Cells;
+	}
 }

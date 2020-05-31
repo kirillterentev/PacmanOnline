@@ -12,7 +12,7 @@ namespace PacmanServer
 
 		public void ReadFieldFromFile()
         {
-            string[] lines = File.ReadAllLines("..\\..\\..\\Program\\pacman_field.txt");
+            string[] lines = File.ReadAllLines(".\\pacman_field.txt");
             int coordX = 0;
             int coordY = 0;
 

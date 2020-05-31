@@ -1,50 +1,49 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 
-public class ConnectWindow : MonoBehaviour
+namespace ClientPacman
 {
-	[SerializeField]
-	private GameController gameController;
-	[SerializeField]
-	private InputField inputField;
-	[SerializeField]
-	private ToggleGroup toggleGroup;
-	[SerializeField]
-	private Button connectButton;
-
-	private string color;
-
-	private void Start()
+	public class ConnectWindow : MonoBehaviour
 	{
-		connectButton.onClick.AddListener(ConnectClient);
-		toggleGroup.SetAllTogglesOff();
-	}
+		[SerializeField] private GameController gameController;
+		[SerializeField] private InputField inputField;
+		[SerializeField] private ToggleGroup toggleGroup;
+		[SerializeField] private Button connectButton;
 
-	private void ConnectClient()
-	{
-		if (inputField.text == string.Empty)
+		private string color;
+
+		private void Start()
 		{
-			Debug.Log("Введите имя");
-			return;
+			connectButton.onClick.AddListener(ConnectClient);
+			toggleGroup.SetAllTogglesOff();
 		}
 
-		if (!toggleGroup.AnyTogglesOn())
+		private void ConnectClient()
 		{
-			Debug.Log("Выберите цвет");
-			return;
+			if (inputField.text == string.Empty)
+			{
+				Debug.Log("Введите имя");
+				return;
+			}
+
+			if (!toggleGroup.AnyTogglesOn())
+			{
+				Debug.Log("Выберите цвет");
+				return;
+			}
+
+			gameController.ConnectToServer(inputField.text, color);
+			gameObject.SetActive(false);
 		}
 
-		gameController.ConnectToServer(inputField.text, color);
-		gameObject.SetActive(false);
-	}
+		public void SetColor(string color)
+		{
+			this.color = color;
+		}
 
-	public void SetColor(string color)
-	{
-		this.color = color;
-	}
-
-	private void OnDestroy()
-	{
-		connectButton.onClick.RemoveAllListeners();
+		private void OnDestroy()
+		{
+			connectButton.onClick.RemoveAllListeners();
+		}
 	}
 }
