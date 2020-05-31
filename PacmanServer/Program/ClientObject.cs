@@ -23,23 +23,16 @@ namespace PacmanServer
 
 		protected internal void InitClient()
 		{
-			Header header = new Header();
-			header.Type = MessageType.GameField;
-			Serializer.SerializeWithLengthPrefix<Header>(Stream, header, PrefixStyle.Fixed32);
-			Serializer.SerializeWithLengthPrefix<GameField>(Stream, server.mapManager.PacmanField.GetFieldProto(), PrefixStyle.Fixed32);
-		
-			header = new Header();
-			header.Type = MessageType.PlayerInfo;
+			WriteMessage(MessageType.GameField, server.MapManager.PacmanField.GetFieldProto());
 
-			foreach (var player in server.playerDict)
+			foreach (var player in server.PlayerDict)
 			{
 				if (player.Key.Id == Id)
 				{
 					continue;
 				}
 
-				Serializer.SerializeWithLengthPrefix<Header>(Stream, header, PrefixStyle.Fixed32);
-				Serializer.SerializeWithLengthPrefix<PlayerInfo>(Stream, player.Key, PrefixStyle.Fixed32);
+				WriteMessage(MessageType.PlayerInfo, player.Key);
 			}
 
 			GetMessageStream();
@@ -65,14 +58,14 @@ namespace PacmanServer
 					switch (header.Type)
 					{
 						case MessageType.PlayerInfo:
-							var player = Serializer.DeserializeWithLengthPrefix<PlayerInfo>(Stream, PrefixStyle.Fixed32);
+							var player = ReadMessage<PlayerInfo>();
 							if (player != null)
 							{
 								if (player.Status == Status.Disconnected)
 								{
-									server.playerDict.Remove(player);
+									server.PlayerDict.Remove(player);
 
-									if (server.playerDict.Count > 0)
+									if (server.PlayerDict.Count > 0)
 									{
 										server.BroadcastMessage<PlayerInfo>(MessageType.PlayerInfo, player);
 									}
@@ -84,10 +77,10 @@ namespace PacmanServer
 								if (player.Status == Status.Connected)
 								{
 									Id = player.Id;
-									server.playerDict.Add(player, server.mapManager.GetFreePoint());
+									server.PlayerDict.Add(player, server.MapManager.GetFreePoint());
 									Console.WriteLine($"Player {player.Nickname} connected!");
 
-									if (server.playerDict.Count > 1)
+									if (server.PlayerDict.Count > 1)
 									{
 										server.BroadcastMessage<PlayerInfo>(MessageType.PlayerInfo, player);
 									}
@@ -96,8 +89,7 @@ namespace PacmanServer
 							break;
 
 						case MessageType.Coord:
-							var coord = Serializer.DeserializeWithLengthPrefix<Coord>(Stream, PrefixStyle.Fixed32);
-
+							var coord = ReadMessage<Coord>();
 							if (coord != null)
 							{
 								LastInput = coord;
@@ -110,6 +102,25 @@ namespace PacmanServer
 			{
 				Console.WriteLine(e);
 				Close();
+			}
+		}
+
+		private T ReadMessage<T>()
+		{
+			try
+			{
+				T message = Serializer.DeserializeWithLengthPrefix<T>(Stream, PrefixStyle.Fixed32);
+				if (message == null)
+				{
+					return default(T);
+				}
+
+				return message;
+			}
+			catch (Exception e)
+			{
+				Console.WriteLine(e);
+				return default(T);
 			}
 		}
 

@@ -12,8 +12,8 @@ namespace PacmanServer
 		private const int UpdatePeriod = 500;
 		private const int MaxConnectionCount = 4;
 
-		protected internal Dictionary<PlayerInfo, Coord> playerDict;
-		protected internal MapManager mapManager;
+		protected internal Dictionary<PlayerInfo, Coord> PlayerDict;
+		protected internal MapManager MapManager;
 
 		private TcpListener tcpListener;
 		private List<ClientObject> clients;
@@ -21,8 +21,8 @@ namespace PacmanServer
 
 		protected internal void InitServer()
 		{
-			mapManager = new MapManager();
-			playerDict = new Dictionary<PlayerInfo, Coord>();
+			MapManager = new MapManager();
+			PlayerDict = new Dictionary<PlayerInfo, Coord>();
 			clients = new List<ClientObject>();
 		}
 
@@ -57,7 +57,7 @@ namespace PacmanServer
 
 		protected internal void GameCicle(object args)
 		{
-			if (playerDict.Count < 1)
+			if (PlayerDict.Count < 1)
 			{
 				return;
 			}
@@ -76,7 +76,7 @@ namespace PacmanServer
 				}
 
 				MoveInfo info;
-				foreach (var player in playerDict)
+				foreach (var player in PlayerDict)
 				{
 					info = new MoveInfo();
 					info.Id = player.Key.Id;
@@ -93,9 +93,9 @@ namespace PacmanServer
 
 		protected internal void MovePlayer(string id, Coord dir)
 		{
-			var playerDictItem = playerDict.First(player => player.Key.Id == id).Key;
-			var newPos = mapManager.CalculateNextPos(playerDict[playerDictItem], dir);
-			playerDict[playerDictItem] = newPos;
+			var playerDictItem = PlayerDict.First(player => player.Key.Id == id).Key;
+			var newPos = MapManager.CalculateNextPos(PlayerDict[playerDictItem], dir);
+			PlayerDict[playerDictItem] = newPos;
 		}
 
 		protected internal void BroadcastMessage<T>(MessageType type ,T message)

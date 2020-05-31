@@ -4,7 +4,7 @@ namespace PacmanServer
 {
 	class MapManager
 	{
-		PacmanField pacmanField;
+		private PacmanField pacmanField;
 		public PacmanField PacmanField
 		{
 			get
