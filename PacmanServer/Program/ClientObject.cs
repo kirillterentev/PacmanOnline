@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Net.Sockets;
 using ProtoBuf;
 
@@ -63,7 +64,11 @@ namespace PacmanServer
 							{
 								if (player.Status == Status.Disconnected)
 								{
-									server.PlayerDict.Remove(player);
+									var key = server.PlayerDict.Keys.FirstOrDefault(item => item.Id == Id);
+									if (key != null)
+									{
+										server.PlayerDict.Remove(key);
+									}
 
 									if (server.PlayerDict.Count > 0)
 									{
@@ -71,6 +76,7 @@ namespace PacmanServer
 									}
 
 									Close();
+									Console.WriteLine($"Player {player.Nickname} disconnected!");
 									return;
 								}
 
@@ -146,15 +152,9 @@ namespace PacmanServer
 				Stream.Close();
 			}
 
-			if (server != null)
-			{
-				server.RemoveConnection(Id);
-			}
+			server?.RemoveConnection(Id);
 
-			if (client != null)
-			{
-				client.Close();
-			}
+			client?.Close();
 		}
 	}
 }

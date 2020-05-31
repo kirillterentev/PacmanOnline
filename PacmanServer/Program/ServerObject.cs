@@ -10,6 +10,7 @@ namespace PacmanServer
 	class ServerObject
 	{
 		private const int UpdatePeriod = 500;
+		private const int MaxConnectionsCount = 4;
 
 		protected internal Dictionary<PlayerInfo, Coord> PlayerDict;
 		protected internal MapManager MapManager;
@@ -38,6 +39,11 @@ namespace PacmanServer
 
 				while (true)
 				{
+					if (clients.Count >= MaxConnectionsCount)
+					{
+						continue;
+					}
+
 					TcpClient tcpClient = tcpListener.AcceptTcpClient();
 
 					if (tcpClient != null)
@@ -108,6 +114,7 @@ namespace PacmanServer
 			}
 			catch (Exception e)
 			{
+				Console.WriteLine(e);
 			}
 		}
 
