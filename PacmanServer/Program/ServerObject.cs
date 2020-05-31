@@ -10,7 +10,6 @@ namespace PacmanServer
 	class ServerObject
 	{
 		private const int UpdatePeriod = 500;
-		private const int MaxConnectionCount = 4;
 
 		protected internal Dictionary<PlayerInfo, Coord> PlayerDict;
 		protected internal MapManager MapManager;
@@ -37,7 +36,7 @@ namespace PacmanServer
 
 				timer = new Timer(new TimerCallback(GameCicle), null, 0, UpdatePeriod);
 
-				while (clients.Count < MaxConnectionCount)
+				while (true)
 				{
 					TcpClient tcpClient = tcpListener.AcceptTcpClient();
 
